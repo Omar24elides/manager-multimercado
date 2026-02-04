@@ -1,7 +1,7 @@
-#include iostream
+#include <iostream>
 
 double calcular_pnl(double precio_compra, double precio_actual, int cantidad) {
-    retuern (precio_actual - precio_compra) * cantidad;
+    return (precio_actual - precio_compra) * cantidad;
 }
 
 int main() {
