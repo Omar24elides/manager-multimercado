@@ -1,0 +1,17 @@
+{
+    "activos": [
+        {"ticker": "MSFT", "cantidad": 0.008, "precio_compra": 420.00, "tipo": "wall_street"},
+        {"ticker": "NVDA", "cantidad": 0.025, "precio_compra": 130.00, "tipo": "wall_street"},
+        {"ticker": "JPM", "cantidad": 0.012, "precio_compra": 200.00, "tipo": "wall_street"},
+        {"ticker": "O", "cantidad": 0.045, "precio_compra": 55.00, "tipo": "wall_street"},
+        {"ticker": "CAT", "cantidad": 0.007, "precio_compra": 340.00, "tipo": "wall_street"},
+        {"ticker": "PEP", "cantidad": 0.023, "precio_compra": 170.00, "tipo": "wall_street"},
+        {"ticker": "TSM", "cantidad": 0.020, "precio_compra": 150.00, "tipo": "wall_street"},
+        {"ticker": "EXSA.DE", "cantidad": 0.12, "precio_compra": 50.00, "tipo": "wall_street"},
+        
+        {"ticker": "MVZ.A", "cantidad": 10.5, "precio_compra": 38.00, "tipo": "accion_bvc"},
+        {"ticker": "BPV", "cantidad": 100.0, "precio_compra": 1.20, "tipo": "accion_bvc"},
+        {"ticker": "RST", "cantidad": 50.0, "precio_compra": 5.10, "tipo": "accion_bvc"},
+        {"ticker": "TDV.D", "cantidad": 20.0, "precio_compra": 1.05, "tipo": "accion_bvc"}
+    ]
+}

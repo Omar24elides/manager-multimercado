@@ -1,52 +1,56 @@
 import json
 import requests
+import yfinance as yf
 from bs4 import BeautifulSoup
 import urllib3
 
-# Evitar mensajes de error de certificados del BCV
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def obtener_datos():
-    print("🚀 Iniciando captura de datos...")
+    print("🚀 Actualizando Portafolio Global...")
     
-    # 1. Obtener Dólar BCV
-    tasa_bcv = 37.50 # Valor de respaldo
+    # 1. Tasa BCV
+    tasa_bcv = 37.50
     try:
-        res = requests.get("https://www.bcv.org.ve/", verify=False, timeout=10)
+        res = requests.get("https://www.bcv.org.ve/", verify=False, timeout=5)
         soup = BeautifulSoup(res.text, 'html.parser')
         tasa_bcv = float(soup.find('div', id='dolar').find('strong').text.strip().replace(',', '.'))
-        print(f"✅ BCV capturado: {tasa_bcv}")
-    except Exception as e:
-        print(f"⚠️ Error BCV, usando respaldo: {e}")
+    except: pass
 
-    # 2. Obtener Bitcoin de Binance
-    btc_price = 0
+    # 2. Wall Street & ETFs (AAPL, MSFT, NVDA, O, TSM, EXSA.DE, etc.)
+    # Agregamos los tickers de tu lista
+    tickers_internacionales = ["MSFT", "NVDA", "JPM", "O", "CAT", "PEP", "TSM", "EXSA.DE", "AMZN", "COST"]
+    data_ws = {}
     try:
-        res_binance = requests.get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
-        btc_price = float(res_binance.json()['price'])
-        print(f"✅ Binance capturado: {btc_price}")
+        for t in tickers_internacionales:
+            ticker = yf.Ticker(t)
+            data_ws[t] = round(ticker.fast_info['last_price'], 2)
+        print("✅ Precios Internacionales actualizados")
     except Exception as e:
-        print(f"⚠️ Error Binance: {e}")
+        print(f"⚠️ Error en Wall Street: {e}")
 
-    # 3. Crear el JSON (El Dashboard)
+    # 3. Bolsa de Valores de Caracas (Valores manuales o Scraper)
+    # Aquí pondremos los que mencionaste
+    data_bvc = {
+        "MVZ.A": 42.00,
+        "BPV": 1.35,
+        "BNC": 0.05,
+        "RST": 5.50,
+        "TDV.D": 1.15,
+        "FVI.B": 2.10
+    }
+
     dashboard = {
-        "tasa_cambio": {
-            "USD_VES": tasa_bcv
-        },
-        "cripto": {
-            "BTC_USDT": btc_price
-        },
-        "acciones_bvc": {
-            "RST": 5.50,
-            "MVZ.A": 42.00
-        },
+        "tasa_cambio": {"USD_VES": tasa_bcv},
+        "cripto": {"BTC_USDT": 0.0}, # Puedes reactivar el de ayer
+        "wall_street": data_ws,
+        "acciones_bvc": data_bvc,
         "status": "Actualizado"
     }
-    
+
     with open('dashboard.json', 'w') as f:
         json.dump(dashboard, f, indent=4)
-    
-    print("✨ dashboard.json generado con éxito.")
+    print("✨ dashboard.json listo para el motor de C++")
 
 if __name__ == "__main__":
     obtener_datos()
