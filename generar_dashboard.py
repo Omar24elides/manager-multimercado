@@ -1,56 +1,46 @@
 import json
 import requests
 import yfinance as yf
-from bs4 import BeautifulSoup
-import urllib3
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from datetime import datetime
 
 def obtener_datos():
-    print("🚀 Actualizando Portafolio Global...")
+    print("🚀 Sincronizando mercados...")
     
-    # 1. Tasa BCV
-    tasa_bcv = 37.50
+    # 1. Obtener BCV desde TU API
     try:
-        res = requests.get("https://www.bcv.org.ve/", verify=False, timeout=5)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        tasa_bcv = float(soup.find('div', id='dolar').find('strong').text.strip().replace(',', '.'))
-    except: pass
+        res = requests.get("http://127.0.0.1:5000/precio", timeout=5)
+        tasa_bcv = res.json()["usd"]
+    except:
+        tasa_bcv = 47.50 # Fallback
 
-    # 2. Wall Street & ETFs (AAPL, MSFT, NVDA, O, TSM, EXSA.DE, etc.)
-    # Agregamos los tickers de tu lista
-    tickers_internacionales = ["MSFT", "NVDA", "JPM", "O", "CAT", "PEP", "TSM", "EXSA.DE", "AMZN", "COST"]
-    data_ws = {}
-    try:
-        for t in tickers_internacionales:
-            ticker = yf.Ticker(t)
-            data_ws[t] = round(ticker.fast_info['last_price'], 2)
-        print("✅ Precios Internacionales actualizados")
-    except Exception as e:
-        print(f"⚠️ Error en Wall Street: {e}")
-
-    # 3. Bolsa de Valores de Caracas (Valores manuales o Scraper)
-    # Aquí pondremos los que mencionaste
-    data_bvc = {
-        "MVZ.A": 42.00,
-        "BPV": 1.35,
-        "BNC": 0.05,
-        "RST": 5.50,
-        "TDV.D": 1.15,
-        "FVI.B": 2.10
-    }
+    # 2. Obtener Wall Street y Cripto Real
+    tickers = ["AAPL", "TSLA", "NVDA", "BTC-USD"]
+    precios = {}
+    for t in tickers:
+        try:
+            data = yf.Ticker(t).fast_info
+            precios[t] = data['last_price']
+        except:
+            precios[t] = 0
 
     dashboard = {
-        "tasa_cambio": {"USD_VES": tasa_bcv},
-        "cripto": {"BTC_USDT": 0.0}, # Puedes reactivar el de ayer
-        "wall_street": data_ws,
-        "acciones_bvc": data_bvc,
-        "status": "Actualizado"
+        "last_update": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "tasa_cambio": {
+            "USD_VES": tasa_bcv,
+            "USDT_BINANCE": round(tasa_bcv * 1.04, 2)
+        },
+        "cripto": {"BTC_USDT": precios.get("BTC-USD", 0)},
+        "wall_street": {
+            "AAPL": precios.get("AAPL", 0),
+            "TSLA": precios.get("TSLA", 0),
+            "NVDA": precios.get("NVDA", 0)
+        },
+        "acciones_bvc": {"RST": 6.15, "MVZ.A": 46.50, "BPV": 1.55}
     }
 
     with open('dashboard.json', 'w') as f:
         json.dump(dashboard, f, indent=4)
-    print("✨ dashboard.json listo para el motor de C++")
+    print("✅ Dashboard actualizado con éxito.")
 
 if __name__ == "__main__":
     obtener_datos()
