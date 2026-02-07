@@ -1,3 +1,16 @@
 {
-    "activos": []
+    "activos": [
+        {
+            "ticker": "MSFT",
+            "cantidad": 6,
+            "precio_compra": 629.8716666666668,
+            "tipo": "wall_street"
+        },
+        {
+            "ticker": "BPV",
+            "cantidad": 1,
+            "precio_compra": 169.99,
+            "tipo": "acciones_bvc"
+        }
+    ]
 }

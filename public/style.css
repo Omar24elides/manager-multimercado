@@ -1,0 +1,160 @@
+/* public/style.css */
+body { 
+    background-color: #0B0E11; 
+    color: #EAECEF; 
+    font-family: 'Inter', sans-serif; 
+    display: flex;
+    justify-content: center;
+    margin: 0; /* Evita márgenes extraños en móviles */
+}
+
+/* style.css */
+
+.app-container {
+    width: 100%;
+    /* Ancho base para móviles */
+    max-width: 500px; 
+    min-height: 100vh;
+    background-color: #0B0E11;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    transition: max-width 0.3s ease; /* Suaviza el cambio si redimensionas */
+}
+
+/* --- ESTO ES LO NUEVO --- */
+/* Cuando la pantalla sea más grande que 768px (Tablets y PC) */
+@media (min-width: 768px) {
+    .app-container {
+        max-width: 850px; /* Un tamaño más generoso para escritorio */
+    }
+
+    /* Opcional: Hacer que las tarjetas de activos se vean en dos columnas en PC */
+    #assets-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+}
+
+.bg-binance-gray { background-color: #1E2329; }
+.binance-yellow { color: #F3BA2F; }
+
+input, select { 
+    background-color: #2B3139 !important; 
+    border: 1px solid #474D57 !important; 
+    color: white; 
+    appearance: none;
+    outline: none;
+}
+
+input:focus {
+    border-color: #F3BA2F !important;
+}
+
+.asset-card {
+    transition: transform 0.2s ease;
+}
+
+.asset-card:active {
+    transform: scale(0.98);
+}
+
+.chart-container { 
+    position: relative; 
+    height: 220px; 
+    width: 100%; 
+}
+
+/* Estilo para el scrollbar (Toque Pro) */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #474D57; border-radius: 10px; }
+
+/* Nuevo estilo para las mini-tarjetas de ahorro */
+.savings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.saving-item {
+    background: rgba(43, 49, 57, 0.5);
+    border: 1px solid #2b3139;
+    padding: 8px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.saving-item span {
+    display: block;
+    font-size: 9px;
+    color: #848e9c;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.saving-item p {
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+/* --- EFECTO GLASSMORPHISM PARA MODALES --- */
+
+#modal, #modal-saldo {
+    backdrop-filter: blur(8px); /* El efecto de desenfoque */
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+    transition: all 0.3s ease-in-out;
+}
+
+/* El contenedor interno del modal */
+#modal > div, #modal-saldo > div {
+    background: rgba(30, 35, 41, 0.85); /* Fondo gris Binance con transparencia */
+    border: 1px solid rgba(243, 186, 47, 0.2); /* Borde sutil amarillo */
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    border-radius: 24px;
+}
+
+/* --- MEJORAS EN LAS TARJETAS DE AHORRO --- */
+
+.saving-item {
+    background: linear-gradient(145deg, #1e2329, #161a1e);
+    border: 1px solid #2b3139;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.saving-item:hover {
+    border-color: #F3BA2F;
+    transform: translateY(-2px);
+    background: #2b3139;
+}
+
+/* --- BOTONES ESTILO BINANCE --- */
+
+.btn-primary {
+    background-color: #F3BA2F !important;
+    color: #000 !important;
+    font-weight: 800;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #f7cb5d !important;
+    transform: scale(1.02);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* --- ANIMACIÓN DE ENTRADA --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#view-cartera, #view-inversiones {
+    animation: fadeIn 0.3s ease-out;
+}

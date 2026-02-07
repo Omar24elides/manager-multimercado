@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance Pro | Portfolio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="pb-10 bg-[#0B0E11] text-white font-sans flex justify-center">
+
+    <div class="app-container w-full max-w-[500px] min-h-screen bg-[#0B0E11] relative shadow-2xl">
+        
+        <header class="p-6 border-b border-gray-800/50 sticky top-0 bg-[#0B0E11]/80 backdrop-blur-md z-40">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-[2px] mb-1">Patrimonio Neto Total</p>
+                    <div class="flex items-baseline gap-1">
+                        <span id="total-usd" class="text-4xl font-bold tracking-tighter">0.00</span>
+                        <span class="text-sm font-black text-[#F3BA2F]">USD</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-xl border border-gray-800 flex justify-between items-center gap-3">
+                        <span class="text-[9px] font-black text-gray-500 uppercase">USDT</span>
+                        <p id="usdt-p" class="text-green-400 font-bold text-xs">--</p>
+                    </div>
+                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-xl border border-gray-800 flex justify-between items-center gap-3">
+                        <span class="text-[9px] font-black text-gray-500 uppercase">BCV</span>
+                        <p id="bcv-p" class="text-blue-400 font-bold text-xs">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-8 bg-gray-900/40 p-1.5 rounded-2xl border border-gray-800/50">
+                <button id="tab-cartera" onclick="switchTab('cartera')" class="flex-1 py-3 rounded-xl text-[11px] font-black transition-all bg-[#F3BA2F] text-black shadow-lg">
+                    MI CARTERA
+                </button>
+                <button id="tab-inversiones" onclick="switchTab('inversiones')" class="flex-1 py-3 rounded-xl text-[11px] font-black transition-all text-gray-500 hover:text-gray-300">
+                    INVERSIONES
+                </button>
+            </div>
+        </header>
+
+        <main class="p-6">
+            
+            <section id="view-cartera" class="space-y-5">
+                <p class="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Efectivo y Liquidez</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div onclick="openEditModal('ves')" class="saving-item p-5 rounded-[24px] border border-gray-800 active:scale-95 transition-all cursor-pointer">
+                        <div class="flex justify-between items-center mb-5">
+                            <div class="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-building-columns text-blue-500 text-xs"></i>
+                            </div>
+                            <i class="fa-solid fa-pen-to-square text-gray-700 text-[10px]"></i>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Bolívares</p>
+                        <p id="save-ves" class="text-xl font-bold text-blue-400 tracking-tight">0.00</p>
+                    </div>
+
+                    <div onclick="openEditModal('usd')" class="saving-item p-5 rounded-[24px] border border-gray-800 active:scale-95 transition-all cursor-pointer">
+                        <div class="flex justify-between items-center mb-5">
+                            <div class="w-8 h-8 bg-gray-100/10 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-money-bill-1 text-gray-300 text-xs"></i>
+                            </div>
+                            <i class="fa-solid fa-pen-to-square text-gray-700 text-[10px]"></i>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Dólares $</p>
+                        <p id="save-cash" class="text-xl font-bold text-gray-200 tracking-tight">0.00</p>
+                    </div>
+
+                    <div onclick="openEditModal('usdt')" class="saving-item p-5 rounded-[24px] border border-gray-800 active:scale-95 transition-all cursor-pointer">
+                        <div class="flex justify-between items-center mb-5">
+                            <div class="w-8 h-8 bg-[#F3BA2F]/10 rounded-full flex items-center justify-center">
+                                <i class="fa-solid fa-tether text-[#F3BA2F] text-xs"></i>
+                            </div>
+                            <i class="fa-solid fa-pen-to-square text-gray-700 text-[10px]"></i>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">USDT</p>
+                        <p id="save-usdt" class="text-xl font-bold text-[#F3BA2F] tracking-tight">0.00</p>
+                    </div>
+
+                    <div onclick="openEditModal('btc')" class="saving-item p-5 rounded-[24px] border border-gray-800 active:scale-95 transition-all cursor-pointer">
+                        <div class="flex justify-between items-center mb-5">
+                            <div class="w-8 h-8 bg-orange-500/10 rounded-full flex items-center justify-center">
+                                <i class="fa-brands fa-bitcoin text-orange-500 text-xs"></i>
+                            </div>
+                            <i class="fa-solid fa-pen-to-square text-gray-700 text-[10px]"></i>
+                        </div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">Bitcoin</p>
+                        <p id="save-btc" class="text-xl font-bold text-orange-500 tracking-tight">0.0000</p>
+                    </div>
+                </div>
+
+                <button onclick="toggleAnalysis()" class="w-full btn-primary py-4 rounded-2xl mt-6 shadow-xl active:scale-95 transition-all">
+                    VER ANÁLISIS PATRIMONIAL
+                </button>
+            </section>
+
+            <section id="view-inversiones" class="hidden space-y-6">
+                <div class="bg-[#1E2329] p-6 rounded-3xl border border-gray-800 shadow-xl">
+                    <div class="relative mb-4">
+                        <input id="sk" type="text" placeholder="Buscar Ticker (AAPL, BVL...)" class="w-full p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F] transition-all" oninput="filterP()">
+                        <div id="predictive" class="absolute z-50 w-full bg-[#2B3139] rounded-2xl mt-2 hidden max-h-48 overflow-y-auto shadow-2xl border border-gray-700"></div>
+                    </div>
+                    
+                    <div class="flex gap-3 mb-4">
+                        <input id="ck" type="number" placeholder="Cant." class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
+                        <input id="pk" type="text" placeholder="Precio Compra" class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
+                    </div>
+                    
+                    <select id="tk" class="w-full p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm mb-6 border border-gray-800 focus:border-[#F3BA2F] cursor-pointer">
+                        <option value="wall_street">Mercado Global ($)</option>
+                        <option value="acciones_bvc">Bolsa de Valores (Bs)</option>
+                    </select>
+                    
+                    <button onclick="addA()" class="w-full btn-primary py-4 rounded-2xl transition-all shadow-lg active:scale-95">
+                        REGISTRAR COMPRA
+                    </button>
+                </div>
+
+                <div class="px-1">
+                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest mb-4">Activos en Cartera</h3>
+                    <div id="assets-list" class="space-y-3">
+                        </div>
+                </div>
+            </section>
+
+        </main>
+
+        <div id="modal-saldo" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-md">
+            <div class="bg-[#1E2329]/90 w-full max-w-xs p-8 rounded-[32px] border border-white/10 shadow-2xl">
+                <h3 id="modal-title" class="text-center font-black text-gray-500 uppercase text-[10px] tracking-widest mb-8">Actualizar Saldo</h3>
+                
+                <div class="relative mb-8 text-center">
+                    <input id="input-saldo" type="number" step="any" class="w-full bg-transparent text-5xl font-bold text-center outline-none text-white mb-2" placeholder="0.00">
+                    <p id="modal-currency" class="text-[#F3BA2F] font-black text-xs">USD</p>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="saveNewBalance()" class="w-full btn-primary py-4 rounded-2xl font-black text-xs active:scale-95">GUARDAR CAMBIOS</button>
+                    <button onclick="closeEditModal()" class="w-full bg-transparent text-gray-500 py-3 rounded-2xl font-black text-[10px] hover:text-white transition-colors">CANCELAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal" class="fixed inset-0 z-[100] hidden p-6 overflow-y-auto backdrop-blur-xl bg-black/80">
+            <div class="flex justify-between items-center mb-10 max-w-2xl mx-auto"> 
+                <h2 class="font-black text-2xl tracking-tighter">Análisis Patrimonial</h2> 
+                <button onclick="toggleAnalysis()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-900 text-white text-2xl">&times;</button> 
+            </div>
+            
+            <div class="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
+                <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800"> 
+                    <p class="text-[10px] mb-8 text-gray-500 font-black uppercase text-center tracking-[3px]">Distribución de Riqueza</p> 
+                    <div class="h-64"><canvas id="chartPie"></canvas></div>
+                </div>
+                <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800"> 
+                    <p class="text-[10px] mb-8 text-gray-500 font-black uppercase text-center tracking-[3px]">Evolución Histórica</p> 
+                    <div class="h-64"><canvas id="chartLine"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+    </div> 
+
+    <script src="script.js"></script>
+</body>
+</html>
