@@ -280,6 +280,40 @@ async function filterP() {
     }
 }
 
+/**
+ * CALCULADORA DINÁMICA
+ */
+function calcularCambio(origen) {
+    // 1. Extraer los precios que ya cargó loadData() en la interfaz
+    const bcvText = document.getElementById('bcv-p').innerText;
+    const usdtText = document.getElementById('usdt-p').innerText;
+
+    const tasaBCV = parseFloat(bcvText) || 0;
+    const tasaUSDT = parseFloat(usdtText) || 0;
+
+    const inputUSD = document.getElementById('conv-usd');
+    const inputVES = document.getElementById('conv-ves');
+    
+    const resBCV = document.getElementById('res-bcv');
+    const resBinance = document.getElementById('res-binance');
+
+    if (tasaBCV === 0) return;
+
+    if (origen === 'usd') {
+        const usd = parseFloat(inputUSD.value) || 0;
+        inputVES.value = (usd * tasaBCV).toFixed(2);
+        
+        resBCV.innerText = (usd * tasaBCV).toLocaleString('es-VE') + " Bs (BCV)";
+        resBinance.innerText = (usd * tasaUSDT).toLocaleString('es-VE') + " Bs (P2P)";
+    } else {
+        const ves = parseFloat(inputVES.value) || 0;
+        inputUSD.value = (ves / tasaBCV).toFixed(2);
+        
+        resBCV.innerText = (ves / tasaBCV).toLocaleString('en-US', {maximumFractionDigits:2}) + " USD (BCV)";
+        resBinance.innerText = (ves / tasaUSDT).toLocaleString('en-US', {maximumFractionDigits:2}) + " USDT (P2P)";
+    }
+}
+
 function renderSugerencias(lista) {
     const b = document.getElementById('predictive');
     if (lista.length === 0) {

@@ -148,6 +148,15 @@ app.get('/api/buscar-global-lista/:query', async (req, res) => {
     }
 });
 
+app.get('/api/buscar-global/:ticker', async (req, res) => {
+    try {
+        // Redirige la petición a Python
+        const response = await axios.get(`http://localhost:5000/api/search/${req.params.ticker}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(404).json({ error: "No encontrado en Yahoo" });
+    }
+});
 // --- ESTO DEBE IR ANTES DE APP.LISTEN ---
 
 app.post('/api/notificar-telegram', (req, res) => {

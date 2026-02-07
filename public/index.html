@@ -125,7 +125,7 @@
                     
                     <div class="flex gap-3 mb-4">
                         <input id="ck" type="number" min="0" placeholder="Cant." class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
-                        <input id="pk" type="text" placeholder="Precio Compra" class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
+                        <input id="pk" type="number" step="any" min="0"placeholder="Precio Compra" class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
                     </div>
                     
                     <select id="tk" class="w-full p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm mb-6 border border-gray-800 focus:border-[#F3BA2F] cursor-pointer">
@@ -145,7 +145,7 @@
                 <div class="space-y-3">
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#F3BA2F] font-bold">$</span>
-                        <input id="conv-usd" type="number" min="0" placeholder="Monto en USD / USDT" class="w-full pl-8 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('usd')">
+                        <input id="conv-usd" type="number" step="any" min="0" placeholder="Monto en USD / USDT" class="w-full pl-8 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('usd')">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-[#0B0E11] p-3 rounded-xl border border-gray-800">
@@ -159,7 +159,7 @@
                     </div>
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">Bs</span>
-                        <input id="conv-ves" type="number" min="0" placeholder="Monto en Bolívares" class="w-full pl-10 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('ves')">
+                        <input id="conv-ves" type="number" step="any" min="0" placeholder="Monto en Bolívares" class="w-full pl-10 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('ves')">
                     </div>
                 </div>
             </section>
@@ -169,7 +169,7 @@
         <div id="modal-saldo" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-md">
             <div class="bg-[#1E2329]/90 w-full max-w-xs p-8 rounded-[32px] border border-white/10 shadow-2xl text-center">
                 <h3 id="modal-title" class="font-black text-gray-500 uppercase text-[10px] tracking-widest mb-8">Actualizar Saldo</h3>
-                <input id="input-saldo" type="number" min="0" class="w-full bg-transparent text-5xl font-bold text-center outline-none text-white mb-2" placeholder="0.00">
+                <input id="input-saldo" type="number" step="any" min="0" class="w-full bg-transparent text-5xl font-bold text-center outline-none text-white mb-2" placeholder="0.00">
                 <p id="modal-currency" class="text-[#F3BA2F] font-black text-xs mb-8">USD</p>
                 <button onclick="saveNewBalance()" class="w-full btn-primary py-4 rounded-2xl font-black text-xs active:scale-95 mb-3">GUARDAR</button>
                 <button onclick="closeEditModal()" class="text-gray-500 text-[10px] font-black uppercase">CANCELAR</button>

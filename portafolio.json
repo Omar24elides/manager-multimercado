@@ -11,6 +11,12 @@
             "cantidad": 1,
             "precio_compra": 169.99,
             "tipo": "acciones_bvc"
+        },
+        {
+            "ticker": "AAPL",
+            "cantidad": 1,
+            "precio_compra": 1000,
+            "tipo": "wall_street"
         }
     ]
 }
