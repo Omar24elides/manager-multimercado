@@ -1,16 +1,15 @@
 /**
  * FINANCE PRO - MOTOR DE INTERFAZ (FRONTEND)
- * Este archivo gestiona la lógica visual, los cálculos y la comunicación con el servidor.
+ * Optimizado: Conexión Telegram corregida y Gráficos unificados.
  */
 
 // --- ESTADO GLOBAL ---
-let marketData = null;      // Datos de BVC, BCV y Precios
-let ahorrosLiquidos = {};   // Saldo en USD, VES, USDT, BTC
-let pieC = null;            // Instancia del gráfico Circular
-let lineC = null;           // Instancia del gráfico de Línea
-let currentEditType = '';   // Moneda seleccionada para editar
+let marketData = null;      
+let ahorrosLiquidos = {};   
+let pieC = null;            
+let lineC = null;           
+let currentEditType = '';   
 
-// Base de datos para el buscador predictivo
 const db = [
     {t:'AAPL', n:'Apple Inc.', m:'wall_street'}, {t:'TSLA', n:'Tesla Motors', m:'wall_street'},
     {t:'NVDA', n:'Nvidia Corp', m:'wall_street'}, {t:'MSFT', n:'Microsoft', m:'wall_street'},
@@ -19,7 +18,7 @@ const db = [
 ];
 
 /**
- * 1. NAVEGACIÓN ENTRE PESTAÑAS
+ * 1. NAVEGACIÓN Y CARGA
  */
 function switchTab(tab) {
     const btnC = document.getElementById('tab-cartera');
@@ -40,9 +39,6 @@ function switchTab(tab) {
     }
 }
 
-/**
- * 2. CARGA Y PROCESAMIENTO DE DATOS
- */
 async function loadData() {
     try {
         const [resMarket, resAhorros] = await Promise.all([
@@ -55,19 +51,16 @@ async function loadData() {
 
         const bcv = marketData.mercado.bcv.usd;
         const usdtves = marketData.mercado.binance.usdt_ves;
-        const btcPrice = 65000; // Precio base para cálculo rápido
+        const btcPrice = marketData.mercado.crypto?.btc || 95000;
 
-        // Actualizar Widget Superior (BCV/USDT)
         document.getElementById('bcv-p').innerText = bcv.toFixed(2);
         document.getElementById('usdt-p').innerText = usdtves.toFixed(2);
 
-        // Actualizar Tarjetas de la Cartera
         document.getElementById('save-ves').innerText = ahorrosLiquidos.ves.toLocaleString('es-VE');
         document.getElementById('save-cash').innerText = ahorrosLiquidos.usd.toLocaleString('en-US');
         document.getElementById('save-usdt').innerText = ahorrosLiquidos.usdt.toLocaleString('en-US');
         document.getElementById('save-btc').innerText = ahorrosLiquidos.btc.toFixed(6);
 
-        // Procesar Inversiones (Lista vertical)
         const list = document.getElementById('assets-list');
         list.innerHTML = ''; 
         let valorInversionesUSD = 0;
@@ -82,10 +75,10 @@ async function loadData() {
             const colorL = a.tipo === 'wall_street' ? 'border-yellow-500' : 'border-blue-500';
 
             list.innerHTML += `
-                <div class="bg-[#1E2329] p-4 rounded-2xl flex justify-between items-center border-l-4 ${colorL} shadow-md">
+                <div class="bg-[#1E2329] p-4 rounded-2xl flex justify-between items-center border-l-4 ${colorL} shadow-md mb-2">
                     <div class="flex flex-col">
                         <span class="font-black text-sm text-gray-200">${a.ticker}</span>
-                        <span class="text-[10px] text-gray-500 tracking-tight">Costo: ${a.precio_compra.toFixed(2)}</span>
+                        <span class="text-[10px] text-gray-500">Costo: ${a.precio_compra.toFixed(2)}</span>
                     </div>
                     <div class="text-right flex-1 px-4">
                         <p class="font-bold text-sm">$${valUSD.toFixed(2)}</p>
@@ -93,80 +86,43 @@ async function loadData() {
                             ${pnl >= 0 ? '▲' : '▼'} ${Math.abs(pnl).toFixed(2)}
                         </p>
                     </div>
-                    <button onclick="delA(${i})" class="text-gray-700 hover:text-red-500 transition-colors p-2">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    <button onclick="delA(${i})" class="text-gray-700 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
                 </div>`;
         });
 
-        // CALCULO PATRIMONIO TOTAL (Inversiones + Caja)
-        const cashEnUSD = ahorrosLiquidos.usd + 
-                         (ahorrosLiquidos.ves / bcv) + 
-                         (ahorrosLiquidos.usdt) + 
-                         (ahorrosLiquidos.btc * btcPrice);
-
+        const cashEnUSD = ahorrosLiquidos.usd + (ahorrosLiquidos.ves / bcv) + ahorrosLiquidos.usdt + (ahorrosLiquidos.btc * btcPrice);
         const patrimonioTotal = valorInversionesUSD + cashEnUSD;
-        document.getElementById('total-usd').innerText = patrimonioTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        animarValor('total-usd', patrimonioTotal);
 
-    } catch(e) { console.error("Error en loadData:", e); }
+    } catch(e) { console.error("Error loadData:", e); }
 }
 
 /**
- * 3. MODAL DE AHORROS (ACTUALIZACIÓN RÁPIDA)
+ * 2. GESTIÓN DE SALDOS Y ACTIVOS
  */
 function openEditModal(type) {
     currentEditType = type;
     const modal = document.getElementById('modal-saldo');
     const input = document.getElementById('input-saldo');
-    const names = { ves: 'Bolívares', usd: 'Dólares Efectivo', usdt: 'USDT', btc: 'Bitcoin' };
-    
+    const names = { ves: 'Bolívares', usd: 'Dólares Cash', usdt: 'USDT', btc: 'Bitcoin' };
     document.getElementById('modal-title').innerText = `Actualizar ${names[type]}`;
     document.getElementById('modal-currency').innerText = type.toUpperCase();
     input.value = ahorrosLiquidos[type] || 0;
-    
     modal.classList.remove('hidden');
     input.focus();
-}
-
-function closeEditModal() {
-    document.getElementById('modal-saldo').classList.add('hidden');
 }
 
 async function saveNewBalance() {
     const val = parseFloat(document.getElementById('input-saldo').value) || 0;
     ahorrosLiquidos[currentEditType] = val;
-
     await fetch('/api/ahorros', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ahorrosLiquidos)
     });
-
-    closeEditModal();
+    document.getElementById('modal-saldo').classList.add('hidden');
     loadData();
-}
-
-/**
- * 4. BUSCADOR Y REGISTRO DE INVERSIONES
- */
-function filterP() {
-    const v = document.getElementById('sk').value.toUpperCase();
-    const b = document.getElementById('predictive');
-    if(v.length < 1) { b.classList.add('hidden'); return; }
-    
-    const f = db.filter(x => x.t.includes(v) || x.n.toUpperCase().includes(v));
-    b.innerHTML = f.map(x => `
-        <div class="p-4 border-b border-gray-800 text-sm hover:bg-gray-800 cursor-pointer flex justify-between items-center" onclick="sel('${x.t}','${x.m}')">
-            <span class="font-bold">${x.t}</span> 
-            <span class="text-[10px] text-gray-500 uppercase">${x.n}</span>
-        </div>`).join('');
-    b.classList.toggle('hidden', f.length === 0);
-}
-
-function sel(t, m) { 
-    document.getElementById('sk').value = t; 
-    document.getElementById('tk').value = m; 
-    document.getElementById('predictive').classList.add('hidden'); 
 }
 
 async function addA() {
@@ -176,22 +132,21 @@ async function addA() {
         precio_compra: parseFloat(document.getElementById('pk').value.replace(',','.')), 
         tipo: document.getElementById('tk').value 
     };
-    if(!body.ticker || isNaN(body.cantidad)) return alert("Revisa los datos");
-    
+    if(!body.ticker || isNaN(body.cantidad)) return alert("Datos inválidos");
     await fetch('/api/agregar', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
     ['sk', 'ck', 'pk'].forEach(id => document.getElementById(id).value = '');
     loadData();
 }
 
 async function delA(index) { 
-    if(confirm("¿Eliminar este activo?")) {
+    if(confirm("¿Eliminar activo?")) {
         await fetch('/api/eliminar', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ index }) }); 
         loadData(); 
     }
 }
 
 /**
- * 5. ANÁLISIS Y GRÁFICOS
+ * 3. GRÁFICOS Y ANÁLISIS (UNIFICADO)
  */
 function toggleAnalysis() {
     const m = document.getElementById('modal');
@@ -201,51 +156,204 @@ function toggleAnalysis() {
 
 function renderCharts() {
     const bcv = marketData.mercado.bcv.usd;
-    
-    // Calcular Inversiones vs Liquidez
+    const btcPrice = marketData.mercado.crypto?.btc || 95000;
+
+    // Torta: Inversiones vs Liquidez
     let invUSD = marketData.portafolio.reduce((s, a) => {
         const p = marketData.mercado.bvc.precios[a.ticker] || a.precio_compra;
         return s + (a.tipo === 'acciones_bvc' ? (a.cantidad * p / bcv) : (a.cantidad * p));
     }, 0);
-
-    let cashUSD = ahorrosLiquidos.usd + ahorrosLiquidos.usdt + (ahorrosLiquidos.ves / bcv) + (ahorrosLiquidos.btc * 65000);
+    let cashUSD = ahorrosLiquidos.usd + ahorrosLiquidos.usdt + (ahorrosLiquidos.ves / bcv) + (ahorrosLiquidos.btc * btcPrice);
 
     if(pieC) pieC.destroy();
-    if(lineC) lineC.destroy();
-
-    // Gráfico de Torta
     pieC = new Chart(document.getElementById('chartPie'), {
         type: 'doughnut',
         data: {
             labels: ['Inversiones', 'Liquidez'],
-            datasets: [{
-                data: [invUSD.toFixed(2), cashUSD.toFixed(2)],
-                backgroundColor: ['#F3BA2F', '#3B82F6'],
-                borderWidth: 0
-            }]
+            datasets: [{ data: [invUSD.toFixed(2), cashUSD.toFixed(2)], backgroundColor: ['#F3BA2F', '#3B82F6'], borderWidth: 0 }]
         },
         options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#848E9C' } } } }
     });
 
-    // Gráfico de Línea
+    // Línea: Historial
     const historial = marketData.historial || [];
+    if(lineC) lineC.destroy();
     lineC = new Chart(document.getElementById('chartLine'), {
         type: 'line',
         data: {
             labels: historial.map(h => h.fecha),
             datasets: [{
-                label: 'Total USD',
-                data: historial.map(h => h.saldo),
-                borderColor: '#F3BA2F',
-                tension: 0.4,
-                fill: true,
-                backgroundColor: 'rgba(243, 186, 47, 0.1)'
+                label: 'USD',
+                data: historial.map(h => h.saldo || h.valor),
+                borderColor: '#F3BA2F', tension: 0.4, fill: true, backgroundColor: 'rgba(243, 186, 47, 0.1)'
             }]
         },
         options: { maintainAspectRatio: false, scales: { x: { display: false }, y: { ticks: { color: '#848E9C' } } } }
     });
 }
 
+/**
+ * 4. UTILIDADES Y TELEGRAM
+ */
+function animarValor(id, valorFinal) {
+    const el = document.getElementById(id);
+    let valorInicial = parseFloat(el.innerText.replace(/[^0-9.-]+/g, "")) || 0;
+    const duracion = 1000;
+    let inicio = null;
+    function paso(timestamp) {
+        if (!inicio) inicio = timestamp;
+        const progreso = Math.min((timestamp - inicio) / duracion, 1);
+        const actual = progreso * (valorFinal - valorInicial) + valorInicial;
+        el.innerText = `$${actual.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        if (progreso < 1) window.requestAnimationFrame(paso);
+    }
+    window.requestAnimationFrame(paso);
+}
+
+// CORRECCIÓN CLAVE: Función de Telegram mejorada
+async function enviarTelegram(btnElement) {
+    if(btnElement) btnElement.classList.add('animate-bounce');
+    console.log("🚀 Disparando reporte a Telegram...");
+    
+    try {
+        const res = await fetch('/api/notificar-telegram', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+            // Hemos quitado el alert("🚀 Reporte enviado a Telegram");
+            console.log("✅ Reporte enviado con éxito");
+            
+            // Opcional: Cambia el color del botón un segundo para dar feedback visual
+            if(btnElement) {
+                btnElement.classList.replace('bg-[#24A1DE]', 'bg-green-500');
+                setTimeout(() => btnElement.classList.replace('bg-green-500', 'bg-[#24A1DE]'), 2000);
+            }
+        }
+    } catch (e) {
+        console.error("Error de red:", e);
+    } finally {
+        if(btnElement) btnElement.classList.remove('animate-bounce');
+    }
+}
+
+// Buscador predictivo
+let debounceTimer;
+
+async function filterP() {
+    const v = document.getElementById('sk').value.toUpperCase();
+    const b = document.getElementById('predictive');
+    
+    if (v.length < 1) { 
+        b.classList.add('hidden'); 
+        return; 
+    }
+
+    // 1. Filtrar primero en la base de datos local (BVC)
+    let coincidencias = db.filter(x => x.t.includes(v) || x.n.toUpperCase().includes(v));
+    
+    // Mostrar resultados locales de inmediato
+    renderSugerencias(coincidencias);
+
+    // 2. Si el usuario escribe más de 2 letras, buscar en Wall Street (Yahoo)
+    clearTimeout(debounceTimer);
+    if (v.length >= 2) {
+        debounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/buscar-global-lista/${v}`);
+                const globalResults = await res.json();
+                
+                // Combinar locales con globales (evitando duplicados)
+                const final = [...coincidencias];
+                globalResults.forEach(g => {
+                    if (!final.find(f => f.t === g.symbol)) {
+                        final.push({ t: g.symbol, n: g.name, m: 'wall_street' });
+                    }
+                });
+                
+                renderSugerencias(final);
+            } catch (e) {
+                console.error("Error en búsqueda global");
+            }
+        }, 500); // Espera 500ms tras la última tecla
+    }
+}
+
+function renderSugerencias(lista) {
+    const b = document.getElementById('predictive');
+    if (lista.length === 0) {
+        b.classList.add('hidden');
+        return;
+    }
+
+    b.innerHTML = lista.map(x => `
+        <div class="p-4 border-b border-gray-800 text-sm hover:bg-gray-800 cursor-pointer flex justify-between items-center" 
+             onclick="seleccionarActivo('${x.t}', '${x.m}')">
+            <div class="flex flex-col">
+                <span class="font-bold text-yellow-500">${x.t}</span>
+                <span class="text-[10px] text-gray-400 uppercase truncate w-40">${x.n}</span>
+            </div>
+            <span class="text-[9px] bg-gray-700 px-2 py-1 rounded text-gray-300">
+                ${x.m === 'wall_street' ? '🇺🇸 NYSE/NASD' : '🇻🇪 BVC'}
+            </span>
+        </div>`).join('');
+    b.classList.remove('hidden');
+}
+
+async function seleccionarActivo(ticker, mercado) {
+    document.getElementById('sk').value = ticker;
+    document.getElementById('tk').value = mercado;
+    document.getElementById('predictive').classList.add('hidden');
+
+    // Buscar precio actual automáticamente
+    try {
+        const res = await fetch(`/api/buscar-global/${ticker}`);
+        const data = await res.json();
+        if (data.price) {
+            document.getElementById('pk').value = data.price.toFixed(2);
+            console.log(`Precio cargado para ${ticker}: $${data.price}`);
+        }
+    } catch (e) {
+        console.warn("No se pudo obtener el precio automático");
+    }
+}
+function sel(t, m) { 
+    document.getElementById('sk').value = t; 
+    document.getElementById('tk').value = m; 
+    document.getElementById('predictive').classList.add('hidden'); 
+}
+
+async function buscarTickerGlobal() {
+    const ticker = document.getElementById('sk').value.toUpperCase();
+    if (!ticker) return;
+
+    const btn = document.getElementById('btn-search-global');
+    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i>';
+
+    try {
+        const res = await fetch(`/api/buscar-global/${ticker}`);
+        const data = await res.json();
+
+        if (data.error) {
+            alert("No se encontró el activo en Yahoo Finance");
+        } else {
+            // Auto-completamos los campos del formulario
+            document.getElementById('sk').value = data.symbol;
+            document.getElementById('pk').value = data.price.toFixed(2);
+            document.getElementById('tk').value = 'wall_street'; // Marcamos como mercado global
+            
+            console.log(`Encontrado: ${data.name} a $${data.price}`);
+        }
+    } catch (e) {
+        console.error("Error en búsqueda global:", e);
+    } finally {
+        btn.innerHTML = '<i class="fa-solid fa-globe"></i>';
+    }
+}
+
 // Inicialización
-loadData();
-setInterval(loadData, 60000);
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    setInterval(loadData, 60000);
+});

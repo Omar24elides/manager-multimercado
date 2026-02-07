@@ -15,28 +15,21 @@
     <div class="app-container w-full max-w-[500px] min-h-screen bg-[#0B0E11] relative shadow-2xl">
         
         <header class="p-6 border-b border-gray-800/50 sticky top-0 bg-[#0B0E11]/80 backdrop-blur-md z-40">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-[2px] mb-1">Patrimonio Neto Total</p>
-                    <div class="flex items-baseline gap-1">
-                        <span id="total-usd" class="text-4xl font-bold tracking-tighter">0.00</span>
-                        <span class="text-sm font-black text-[#F3BA2F]">USD</span>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col gap-2">
-                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-xl border border-gray-800 flex justify-between items-center gap-3">
-                        <span class="text-[9px] font-black text-gray-500 uppercase">USDT</span>
+            <div class="flex justify-between items-center">
+                <p class="text-[#F3BA2F] text-[10px] font-black uppercase tracking-[3px]">Finance Pro</p>
+                <div class="flex gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black text-gray-500">USDT</span>
                         <p id="usdt-p" class="text-green-400 font-bold text-xs">--</p>
                     </div>
-                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-xl border border-gray-800 flex justify-between items-center gap-3">
-                        <span class="text-[9px] font-black text-gray-500 uppercase">BCV</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black text-gray-500">BCV</span>
                         <p id="bcv-p" class="text-blue-400 font-bold text-xs">--</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex gap-2 mt-8 bg-gray-900/40 p-1.5 rounded-2xl border border-gray-800/50">
+            <div class="flex gap-2 mt-6 bg-gray-900/40 p-1.5 rounded-2xl border border-gray-800/50">
                 <button id="tab-cartera" onclick="switchTab('cartera')" class="flex-1 py-3 rounded-xl text-[11px] font-black transition-all bg-[#F3BA2F] text-black shadow-lg">
                     MI CARTERA
                 </button>
@@ -46,8 +39,28 @@
             </div>
         </header>
 
-        <main class="p-6">
+        <main class="p-6 space-y-6">
             
+            <section class="relative overflow-hidden bg-[#1E2329] p-7 rounded-[32px] border border-gray-800 shadow-2xl group transition-all hover:border-gray-700">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center gap-2 mb-1">
+                        <p class="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">Patrimonio Total Estimado</p>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-3">
+                            <h1 id="total-usd" class="text-5xl font-black text-white tracking-tight tabular-nums">$0.00</h1>
+                            <div id="badge-cambio" class="flex items-center bg-green-500/10 px-2 py-1 rounded-lg">
+                                <span id="porcentaje-cambio" class="text-green-500 text-xs font-bold">+0.0%</span>
+                            </div>
+                        </div>
+                        <p id="total-ves" class="text-gray-500 text-sm font-medium mt-1">≈ Bs. 0.00</p>
+                    </div>
+                </div>
+            </section>
+
             <section id="view-cartera" class="space-y-5">
                 <p class="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Efectivo y Liquidez</p>
                 
@@ -97,7 +110,7 @@
                     </div>
                 </div>
 
-                <button onclick="toggleAnalysis()" class="w-full btn-primary py-4 rounded-2xl mt-6 shadow-xl active:scale-95 transition-all">
+                <button onclick="toggleAnalysis()" class="w-full btn-primary py-4 rounded-2xl mt-6 shadow-xl active:scale-95 transition-all font-black text-xs tracking-widest">
                     VER ANÁLISIS PATRIMONIAL
                 </button>
             </section>
@@ -106,11 +119,12 @@
                 <div class="bg-[#1E2329] p-6 rounded-3xl border border-gray-800 shadow-xl">
                     <div class="relative mb-4">
                         <input id="sk" type="text" placeholder="Buscar Ticker (AAPL, BVL...)" class="w-full p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F] transition-all" oninput="filterP()">
+                        
                         <div id="predictive" class="absolute z-50 w-full bg-[#2B3139] rounded-2xl mt-2 hidden max-h-48 overflow-y-auto shadow-2xl border border-gray-700"></div>
                     </div>
                     
                     <div class="flex gap-3 mb-4">
-                        <input id="ck" type="number" placeholder="Cant." class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
+                        <input id="ck" type="number" min="0" placeholder="Cant." class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
                         <input id="pk" type="text" placeholder="Precio Compra" class="w-1/2 p-4 rounded-2xl bg-[#0B0E11] outline-none text-sm border border-gray-800 focus:border-[#F3BA2F]">
                     </div>
                     
@@ -123,50 +137,65 @@
                         REGISTRAR COMPRA
                     </button>
                 </div>
+                <div id="assets-list" class="space-y-3"></div>
+            </section>
 
-                <div class="px-1">
-                    <h3 class="text-xs font-black text-gray-600 uppercase tracking-widest mb-4">Activos en Cartera</h3>
-                    <div id="assets-list" class="space-y-3">
+            <section class="bg-[#1E2329] p-5 rounded-[24px] border border-gray-800 shadow-xl">
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Calculadora de Cambio</p>
+                <div class="space-y-3">
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#F3BA2F] font-bold">$</span>
+                        <input id="conv-usd" type="number" min="0" placeholder="Monto en USD / USDT" class="w-full pl-8 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('usd')">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-[#0B0E11] p-3 rounded-xl border border-gray-800">
+                            <p class="text-[9px] text-gray-500 font-bold uppercase mb-1">Total BCV</p>
+                            <p id="res-bcv" class="text-blue-400 font-bold text-sm">0.00 Bs</p>
                         </div>
+                        <div class="bg-[#0B0E11] p-3 rounded-xl border border-gray-800">
+                            <p class="text-[9px] text-gray-500 font-bold uppercase mb-1">Total USDT</p>
+                            <p id="res-binance" class="text-green-400 font-bold text-sm">0.00 Bs</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">Bs</span>
+                        <input id="conv-ves" type="number" min="0" placeholder="Monto en Bolívares" class="w-full pl-10 p-4 rounded-xl bg-[#0B0E11] border border-gray-800 focus:border-[#F3BA2F] outline-none text-sm transition-all" oninput="calcularCambio('ves')">
+                    </div>
                 </div>
             </section>
 
         </main>
 
         <div id="modal-saldo" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-md">
-            <div class="bg-[#1E2329]/90 w-full max-w-xs p-8 rounded-[32px] border border-white/10 shadow-2xl">
-                <h3 id="modal-title" class="text-center font-black text-gray-500 uppercase text-[10px] tracking-widest mb-8">Actualizar Saldo</h3>
-                
-                <div class="relative mb-8 text-center">
-                    <input id="input-saldo" type="number" step="any" class="w-full bg-transparent text-5xl font-bold text-center outline-none text-white mb-2" placeholder="0.00">
-                    <p id="modal-currency" class="text-[#F3BA2F] font-black text-xs">USD</p>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <button onclick="saveNewBalance()" class="w-full btn-primary py-4 rounded-2xl font-black text-xs active:scale-95">GUARDAR CAMBIOS</button>
-                    <button onclick="closeEditModal()" class="w-full bg-transparent text-gray-500 py-3 rounded-2xl font-black text-[10px] hover:text-white transition-colors">CANCELAR</button>
-                </div>
+            <div class="bg-[#1E2329]/90 w-full max-w-xs p-8 rounded-[32px] border border-white/10 shadow-2xl text-center">
+                <h3 id="modal-title" class="font-black text-gray-500 uppercase text-[10px] tracking-widest mb-8">Actualizar Saldo</h3>
+                <input id="input-saldo" type="number" min="0" class="w-full bg-transparent text-5xl font-bold text-center outline-none text-white mb-2" placeholder="0.00">
+                <p id="modal-currency" class="text-[#F3BA2F] font-black text-xs mb-8">USD</p>
+                <button onclick="saveNewBalance()" class="w-full btn-primary py-4 rounded-2xl font-black text-xs active:scale-95 mb-3">GUARDAR</button>
+                <button onclick="closeEditModal()" class="text-gray-500 text-[10px] font-black uppercase">CANCELAR</button>
             </div>
         </div>
 
         <div id="modal" class="fixed inset-0 z-[100] hidden p-6 overflow-y-auto backdrop-blur-xl bg-black/80">
-            <div class="flex justify-between items-center mb-10 max-w-2xl mx-auto"> 
-                <h2 class="font-black text-2xl tracking-tighter">Análisis Patrimonial</h2> 
-                <button onclick="toggleAnalysis()" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-900 text-white text-2xl">&times;</button> 
-            </div>
-            
-            <div class="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
-                <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800"> 
-                    <p class="text-[10px] mb-8 text-gray-500 font-black uppercase text-center tracking-[3px]">Distribución de Riqueza</p> 
-                    <div class="h-64"><canvas id="chartPie"></canvas></div>
+            <div class="max-w-2xl mx-auto py-10">
+                <div class="flex justify-between items-center mb-10">
+                    <h2 class="font-black text-2xl tracking-tighter">Análisis Patrimonial</h2>
+                    <button onclick="toggleAnalysis()" class="text-3xl">&times;</button>
                 </div>
-                <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800"> 
-                    <p class="text-[10px] mb-8 text-gray-500 font-black uppercase text-center tracking-[3px]">Evolución Histórica</p> 
-                    <div class="h-64"><canvas id="chartLine"></canvas></div>
+                <div class="grid gap-6">
+                    <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800 h-80">
+                        <canvas id="chartPie"></canvas>
+                    </div>
+                    <div class="bg-[#1E2329]/50 p-6 rounded-3xl border border-gray-800 h-80">
+                        <canvas id="chartLine"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <button onclick="enviarTelegram(this)" class="fixed bottom-6 right-6 w-14 h-14 bg-[#24A1DE] rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-all z-50">
+    <i class="fa-solid fa-paper-plane text-white text-xl"></i>
+</button>   
     </div> 
 
     <script src="script.js"></script>
