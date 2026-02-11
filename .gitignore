@@ -1,2 +1,6 @@
 motor_pnl
 dashboard.json
+*.json
+*.txt
+__pycache__/
+.env

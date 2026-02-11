@@ -1,182 +1,123 @@
 const express = require('express');
 const axios = require('axios');
-const fs = require('fs');
-const cron = require('node-cron');
+const fs = require('fs').promises; // Usamos la versión PROMISE para no bloquear el servidor
 const { exec } = require('child_process');
 const path = require('path');
+const cron = require('node-cron');
 
 const app = express();
+
+// --- CONFIGURACIÓN DE RUTAS ---
+const FILES = {
+    portfolio: path.join(__dirname, 'portafolio.json'),
+    history: path.join(__dirname, 'historial.json'),
+    savings: path.join(__dirname, 'ahorros.json')
+};
 
 app.use(express.json());
 app.use(express.static('public'));
 
-const PORTAFOLIO_FILE = './portafolio.json';
-const HISTORIAL_FILE = './historial.json';
-const AHORROS_FILE = './ahorros.json';
+// --- UTILIDADES ---
 
-// --- FUNCIONES DE APOYO ---
+// Ruta para disparar el reporte
+app.post('/api/telegram-report', (req, res) => {
+    console.log("Iniciando envío de reporte vía telegram_bot.py...");
 
-function actualizarHistorialLocal(totalUSD) {
-    let historial = fs.existsSync(HISTORIAL_FILE) ? JSON.parse(fs.readFileSync(HISTORIAL_FILE)) : [];
-    const hoy = new Date().toLocaleDateString('es-VE');
-    const entry = { fecha: hoy, valor: parseFloat(totalUSD.toFixed(2)) };
-    
-    const idx = historial.findIndex(h => h.fecha === hoy);
-    if (idx > -1) historial[idx].valor = entry.valor;
-    else historial.push(entry);
-
-    if (historial.length > 30) historial.shift();
-    fs.writeFileSync(HISTORIAL_FILE, JSON.stringify(historial, null, 4));
-}
-
-function ejecutarBot() {
-    // Usamos la ruta absoluta para evitar errores de ubicación
-    const botPath = path.join(__dirname, 'telegram_bot.py');
-    exec(`python3 "${botPath}"`, (error, stdout, stderr) => {
-        if (error) console.error(`❌ Error Bot: ${error.message}`);
-        if (stderr) console.error(`⚠️ Stderr Bot: ${stderr}`);
-        if (stdout) console.log(`🤖 Bot dice: ${stdout}`);
-    });
-}
-
-// --- RUTAS API ---
-
-app.get('/api/dashboard', async (req, res) => {
-    try {
-        const response = await axios.get('http://localhost:5000/all');
-        const mercado = response.data;
-        let portafolio = fs.existsSync(PORTAFOLIO_FILE) ? JSON.parse(fs.readFileSync(PORTAFOLIO_FILE)).activos : [];
-        let historial = fs.existsSync(HISTORIAL_FILE) ? JSON.parse(fs.readFileSync(HISTORIAL_FILE)) : [];
-        res.json({ mercado, portafolio, historial });
-    } catch (e) {
-        res.status(500).json({ error: "API Python no responde" });
-    }
-});
-
-app.post('/api/agregar', (req, res) => {
-    const { ticker, cantidad, precio_compra, tipo } = req.body;
-    if (cantidad < 0 || precio_compra < 0) return res.status(400).json({ error: "No negativos" });
-
-    let data = fs.existsSync(PORTAFOLIO_FILE) ? JSON.parse(fs.readFileSync(PORTAFOLIO_FILE)) : { activos: [] };
-    const index = data.activos.findIndex(a => a.ticker === ticker);
-
-    if (index !== -1) {
-        let a = data.activos[index];
-        const nuevaCant = a.cantidad + cantidad;
-        data.activos[index].precio_compra = ((a.cantidad * a.precio_compra) + (cantidad * precio_compra)) / nuevaCant;
-        data.activos[index].cantidad = nuevaCant;
-    } else {
-        data.activos.push({ ticker, cantidad, precio_compra, tipo });
-    }
-
-    fs.writeFileSync(PORTAFOLIO_FILE, JSON.stringify(data, null, 4));
-    ejecutarBot();
-    res.json({ success: true });
-});
-
-app.get('/api/ahorros', (req, res) => {
-    let data = fs.existsSync(AHORROS_FILE) ? JSON.parse(fs.readFileSync(AHORROS_FILE)) : { usd: 0, ves: 0, usdt: 0, btc: 0 };
-    res.json(data);
-});
-
-app.post('/api/ahorros', (req, res) => {
-    fs.writeFileSync(AHORROS_FILE, JSON.stringify(req.body, null, 4));
-    ejecutarBot(); // Notifica al actualizar saldo
-    res.json({ success: true });
-});
-
-app.get('/api/historial', (req, res) => {
-    let datos = fs.existsSync(HISTORIAL_FILE) ? JSON.parse(fs.readFileSync(HISTORIAL_FILE)) : [];
-    res.json(datos);
-});
-
-app.post('/api/notificar-telegram', (req, res) => {
-    const { exec } = require('child_process');
-    const path = require('path');
-    
-    // Usamos la ruta absoluta para que Node no se pierda
-    const scriptPath = path.join(__dirname, 'telegram_bot.py');
-    
-    console.log(`Buscando script en: ${scriptPath}`);
-
-    exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
+    // CAMBIO AQUÍ: Usamos el nombre exacto de tu archivo
+    exec('python3 telegram_bot.py', (error, stdout, stderr) => {
         if (error) {
-            console.error("❌ ERROR CRÍTICO:", error.message);
-            return res.status(500).json({ 
-                success: false, 
-                error: "Error de ejecución", 
-                detalle: error.message 
-            });
-        }
-        
-        if (stderr) {
-            console.warn("⚠️ ADVERTENCIA:", stderr);
-        }
-
-        console.log("🤖 SALIDA DEL BOT:", stdout);
-        res.json({ success: true, message: "Enviado" });
-    });
-});
-
-// --- CRON DIARIO ---
-cron.schedule('59 23 * * *', async () => {
-    try {
-        const response = await axios.get('http://localhost:5000/all');
-        const m = response.data;
-        let total = 0;
-
-        if (fs.existsSync(PORTAFOLIO_FILE)) {
-            JSON.parse(fs.readFileSync(PORTAFOLIO_FILE)).activos.forEach(a => {
-                let p = m.bvc.precios[a.ticker] || a.precio_compra;
-                total += (a.tipo === 'acciones_bvc') ? (a.cantidad * p) / m.bcv.usd : (a.cantidad * p);
-            });
-        }
-        if (fs.existsSync(AHORROS_FILE)) {
-            const ah = JSON.parse(fs.readFileSync(AHORROS_FILE));
-            total += ah.usd + ah.usdt + (ah.ves / m.bcv.usd) + (ah.btc * (m.crypto?.btc || 65000));
-        }
-        actualizarHistorialLocal(total);
-        ejecutarBot();
-    } catch (e) { console.error("Error Cron:", e.message); }
-});
-app.get('/api/buscar-global-lista/:query', async (req, res) => {
-    try {
-        const response = await axios.get(`http://localhost:5000/api/search_global/${req.params.query}`);
-        res.json(response.data);
-    } catch (e) {
-        res.json([]);
-    }
-});
-
-app.get('/api/buscar-global/:ticker', async (req, res) => {
-    try {
-        // Redirige la petición a Python
-        const response = await axios.get(`http://localhost:5000/api/search/${req.params.ticker}`);
-        res.json(response.data);
-    } catch (error) {
-        res.status(404).json({ error: "No encontrado en Yahoo" });
-    }
-});
-// --- ESTO DEBE IR ANTES DE APP.LISTEN ---
-
-app.post('/api/notificar-telegram', (req, res) => {
-    console.log("🔔 El botón fue presionado. Ejecutando script de Python...");
-    
-    const { exec } = require('child_process');
-    const path = require('path');
-    const scriptPath = path.join(__dirname, 'telegram_bot.py');
-
-    exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`❌ Error al ejecutar: ${error.message}`);
+            console.error(`Error de ejecución: ${error.message}`);
             return res.status(500).json({ success: false, error: error.message });
         }
-        console.log(`✅ Bot ejecutado: ${stdout}`);
+        
+        console.log("Reporte enviado con éxito.");
         res.json({ success: true });
     });
 });
 
-// --- EL APP.LISTEN SIEMPRE DEBE SER LO ÚLTIMO ---
-app.listen(3000, '0.0.0.0', () => {
-    console.log("🚀 Servidor corriendo en puerto 3000");
+// --- API ENDPOINTS ---
+
+// Dashboard unificado
+app.get('/api/dashboard', async (req, res) => {
+    try {
+        const [mercado, portafolio, historial] = await Promise.all([
+            axios.get('http://localhost:5000/all').then(r => r.data),
+            fs.readFile(FILES.portfolio, 'utf8').then(JSON.parse).catch(() => ({ activos: [] })),
+            fs.readFile(FILES.history, 'utf8').then(JSON.parse).catch(() => [])
+        ]);
+        res.json({ mercado, portafolio: portafolio.activos, historial });
+    } catch (e) {
+        res.status(500).json({ error: "Servicio de datos no disponible" });
+    }
+});
+
+// Ahorros con persistencia limpia
+app.route('/api/ahorros')
+    .get(async (req, res) => {
+        const data = await fs.readFile(FILES.savings, 'utf8').then(JSON.parse).catch(() => ({ usd: 0, ves: 0, usdt: 0, btc: 0 }));
+        res.json(data);
+    })
+    .post(async (req, res) => {
+        await fs.writeFile(FILES.savings, JSON.stringify(req.body, null, 4));
+        runBot();
+        res.json({ success: true });
+    });
+
+// Eliminar activo por ID/Index
+app.post('/api/eliminar', async (req, res) => {
+    try {
+        const { index } = req.body;
+        const data = await fs.readFile(FILES.portfolio, 'utf8').then(JSON.parse);
+        data.activos.splice(index, 1);
+        await fs.writeFile(FILES.portfolio, JSON.stringify(data, null, 4));
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Proxy para búsqueda Yahoo (evita problemas de CORS en el front)
+app.get('/api/buscar-global-lista/:query', async (req, res) => {
+    try {
+        const r = await axios.get(`http://localhost:5000/api/search_global/${req.params.query}`);
+        res.json(r.data);
+    } catch (e) { res.json([]); }
+});
+// RUTA 1: Obtener precio en tiempo real (Yahoo Finance vía Python)
+app.get('/api/get_price/:ticker', async (req, res) => {
+    try {
+        const ticker = req.params.ticker;
+        // Llamamos al servicio de Python (puerto 5000)
+        const response = await fetch(`http://localhost:5000/api/buscar-global/${ticker}`);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: "Error conectando con el motor de precios" });
+    }
+});
+
+// RUTA 2: Agregar activo al portafolio
+app.post('/api/agregar', async (req, res) => {
+    try {
+        const nuevoActivo = req.body;
+        // Aquí deberías guardar en tu DB o enviarlo a Python para procesar
+        const response = await fetch('http://localhost:5000/api/portafolio/agregar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoActivo)
+        });
+        const resultado = await response.json();
+        res.json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: "Error al guardar el activo" });
+    }
+});
+
+app.post('/api/notificar-telegram', (req, res) => {
+    runBot();
+    res.json({ success: true });
+});
+
+// Puerto dinámico para hosting
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server Ready on port ${PORT}`);
 });

@@ -1,34 +1,44 @@
-/* public/style.css */
+/* --- 1. RESET Y CONFIGURACIÓN DE APP NATIVA --- */
+:root {
+    --binance-yellow: #F3BA2F;
+    --binance-gray: #1E2329;
+    --bg-dark: #0B0E11;
+    --text-main: #EAECEF;
+    --text-muted: #848E9C;
+    --border-color: #2b3139;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Elimina el cuadro azul al tocar en móviles */
+}
+
 body { 
-    background-color: #0B0E11; 
-    color: #EAECEF; 
+    background-color: var(--bg-dark); 
+    color: var(--text-main); 
     font-family: 'Inter', sans-serif; 
+    margin: 0;
     display: flex;
     justify-content: center;
-    margin: 0; /* Evita márgenes extraños en móviles */
+    overscroll-behavior-y: contain; /* Evita el rebote elástico en navegadores móviles */
+    user-select: none; /* Evita que se seleccione texto, dándole look de App nativa */
 }
 
-/* style.css */
-
+/* --- 2. CONTENEDOR PRINCIPAL (RESPONSIVE) --- */
 .app-container {
     width: 100%;
-    /* Ancho base para móviles */
     max-width: 500px; 
     min-height: 100vh;
-    background-color: #0B0E11;
+    background-color: var(--bg-dark);
     position: relative;
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
-    transition: max-width 0.3s ease; /* Suaviza el cambio si redimensionas */
+    transition: max-width 0.3s ease;
 }
 
-/* --- ESTO ES LO NUEVO --- */
-/* Cuando la pantalla sea más grande que 768px (Tablets y PC) */
 @media (min-width: 768px) {
     .app-container {
-        max-width: 850px; /* Un tamaño más generoso para escritorio */
+        max-width: 850px;
     }
-
-    /* Opcional: Hacer que las tarjetas de activos se vean en dos columnas en PC */
     #assets-list {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -36,27 +46,35 @@ body {
     }
 }
 
-.bg-binance-gray { background-color: #1E2329; }
-.binance-yellow { color: #F3BA2F; }
-
+/* --- 3. ELEMENTOS DE FORMULARIO --- */
 input, select { 
     background-color: #2B3139 !important; 
     border: 1px solid #474D57 !important; 
-    color: white; 
+    color: white !important; 
     appearance: none;
     outline: none;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    transition: all 0.2s ease;
 }
 
 input:focus {
-    border-color: #F3BA2F !important;
+    border-color: var(--binance-yellow) !important;
+    box-shadow: 0 0 0 1px var(--binance-yellow);
 }
 
+/* --- 4. COMPONENTES Y TARJETAS --- */
+.bg-binance-gray { background-color: var(--binance-gray); }
+.binance-yellow { color: var(--binance-yellow); }
+
 .asset-card {
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
 }
 
 .asset-card:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
+    background-color: #2b3139;
 }
 
 .chart-container { 
@@ -65,96 +83,112 @@ input:focus {
     width: 100%; 
 }
 
-/* Estilo para el scrollbar (Toque Pro) */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: #474D57; border-radius: 10px; }
-
-/* Nuevo estilo para las mini-tarjetas de ahorro */
+/* --- 5. AHORROS Y LIQUIDEZ --- */
 .savings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 8px;
+    gap: 10px;
     margin-top: 15px;
 }
 
 .saving-item {
-    background: rgba(43, 49, 57, 0.5);
-    border: 1px solid #2b3139;
-    padding: 8px;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.saving-item span {
-    display: block;
-    font-size: 9px;
-    color: #848e9c;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.saving-item p {
-    font-size: 11px;
-    font-weight: bold;
-    margin-top: 2px;
-}
-
-/* --- EFECTO GLASSMORPHISM PARA MODALES --- */
-
-#modal, #modal-saldo {
-    backdrop-filter: blur(8px); /* El efecto de desenfoque */
-    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
-    transition: all 0.3s ease-in-out;
-}
-
-/* El contenedor interno del modal */
-#modal > div, #modal-saldo > div {
-    background: rgba(30, 35, 41, 0.85); /* Fondo gris Binance con transparencia */
-    border: 1px solid rgba(243, 186, 47, 0.2); /* Borde sutil amarillo */
-    backdrop-filter: blur(10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    border-radius: 24px;
-}
-
-/* --- MEJORAS EN LAS TARJETAS DE AHORRO --- */
-
-.saving-item {
     background: linear-gradient(145deg, #1e2329, #161a1e);
-    border: 1px solid #2b3139;
+    border: 1px solid var(--border-color);
+    padding: 12px 8px;
+    border-radius: 16px;
+    text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .saving-item:hover {
-    border-color: #F3BA2F;
+    border-color: var(--binance-yellow);
     transform: translateY(-2px);
-    background: #2b3139;
 }
 
-/* --- BOTONES ESTILO BINANCE --- */
+.saving-item span {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
+.saving-item p {
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+/* --- 6. MODALES CON GLASSMORPHISM PRO --- */
+#modal, #modal-saldo, #modal-calc, #lock-screen, #auth-container {
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+    background-color: rgba(0, 0, 0, 0.75);
+    transition: all 0.3s ease-in-out;
+    z-index: 100;
+}
+
+/* Contenedores internos de los modales */
+#modal > div, #modal-saldo > div, #modal-calc > div, .modal-content {
+    background: linear-gradient(160deg, rgba(30, 35, 41, 0.95), rgba(22, 26, 30, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    border-radius: 28px;
+}
+
+/* --- 7. BOTONES --- */
 .btn-primary {
-    background-color: #F3BA2F !important;
+    background-color: var(--binance-yellow) !important;
     color: #000 !important;
     font-weight: 800;
-    transition: all 0.2s ease;
+    border-radius: 12px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary:hover {
     background-color: #f7cb5d !important;
-    transform: scale(1.02);
+    transform: translateY(-1px);
 }
 
 .btn-primary:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
-/* --- ANIMACIÓN DE ENTRADA --- */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+/* --- 8. ANIMACIONES Y TRANSICIONES --- */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+.fade-out { animation: fadeOut 0.4s ease-out forwards; }
+
 #view-cartera, #view-inversiones {
-    animation: fadeIn 0.3s ease-out;
+    animation: slideUp 0.4s ease-out;
+}
+
+/* --- 9. UTILIDADES --- */
+.hidden { display: none !important; }
+
+::-webkit-scrollbar {
+    width: 0px; /* Scrollbar invisible para look de App */
+    background: transparent;
+}
+
+/* Estilo para indicadores de carga o estados activos */
+.nav-btn-active {
+    color: var(--binance-yellow) !important;
 }
